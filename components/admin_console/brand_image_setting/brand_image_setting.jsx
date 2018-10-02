@@ -27,7 +27,6 @@ export default class BrandImageSetting extends React.PureComponent {
     constructor(props) {
         super(props);
 
-        this.handleImageChange = this.handleImageChange.bind(this);
         this.handleImageSubmit = this.handleImageSubmit.bind(this);
 
         this.state = {
@@ -64,50 +63,42 @@ export default class BrandImageSetting extends React.PureComponent {
         }
     }
 
-    handleImageChange() {
-        const element = $(this.refs.fileInput);
-
-        if (element.prop('files').length > 0) {
-            this.setState({
-                brandImage: element.prop('files')[0],
-                status: UploadStatuses.DEFAULT,
-            });
-        }
-    }
-
     handleImageSubmit(e) {
         e.preventDefault();
-
-        if (!this.state.brandImage) {
-            return;
-        }
 
         if (this.state.status === UploadStatuses.LOADING) {
             return;
         }
 
+        const element = $(this.refs.fileInput);
+
+        if (element.prop('files').length === 0) {
+            return;
+        }
+
         this.setState({
-            error: '',
+            brandImage: element.prop('files')[0],
             status: UploadStatuses.LOADING,
+        }, () => {
+            uploadBrandImage(
+                this.state.brandImage,
+                () => {
+                    this.setState({
+                        brandImageExists: true,
+                        brandImage: null,
+                        brandImageTimestamp: Date.now(),
+                        status: UploadStatuses.COMPLETE,
+                    });
+                },
+                (err) => {
+                    this.setState({
+                        error: err.message,
+                        status: UploadStatuses.DEFAULT,
+                    });
+                }
+            );
         });
 
-        uploadBrandImage(
-            this.state.brandImage,
-            () => {
-                this.setState({
-                    brandImageExists: true,
-                    brandImage: null,
-                    brandImageTimestamp: Date.now(),
-                    status: UploadStatuses.COMPLETE,
-                });
-            },
-            (err) => {
-                this.setState({
-                    error: err.message,
-                    status: UploadStatuses.DEFAULT,
-                });
-            }
-        );
     }
 
     render() {
@@ -176,15 +167,9 @@ export default class BrandImageSetting extends React.PureComponent {
                             type='file'
                             accept='.jpg,.png,.bmp'
                             disabled={this.props.disabled}
-                            onChange={this.handleImageChange}
+                            onChange={this.handleImageSubmit}
                         />
                     </div>
-                    <UploadButton
-                        primaryClass={btnPrimaryClass}
-                        status={this.state.status}
-                        disabled={this.props.disabled || !this.state.brandImage}
-                        onClick={this.handleImageSubmit}
-                    />
                     <br/>
                     <FormError error={this.state.error}/>
                     <p className='help-text no-margin'>
