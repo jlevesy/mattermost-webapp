@@ -88,6 +88,8 @@ export default class BrandImageSetting extends React.PureComponent {
             brandImageExists: false,
             status: UploadStatuses.DEFAULT,
         });
+
+        this.props.onChange(this.props.id, '');
     }
 
     handleImageSubmit(e) {
