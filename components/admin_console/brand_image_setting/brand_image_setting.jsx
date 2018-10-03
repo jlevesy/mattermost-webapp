@@ -28,6 +28,7 @@ export default class BrandImageSetting extends React.PureComponent {
         super(props);
 
         this.handleImageSubmit = this.handleImageSubmit.bind(this);
+        this.handleClearImage = this.handleClearImage.bind(this);
 
         this.state = {
             brandImage: null,
@@ -51,16 +52,42 @@ export default class BrandImageSetting extends React.PureComponent {
     }
 
     componentDidUpdate() {
-        if (this.refs.image) {
-            const reader = new FileReader();
-
-            const img = this.refs.image;
-            reader.onload = (e) => {
-                $(img).attr('src', e.target.result);
-            };
-
-            reader.readAsDataURL(this.state.brandImage);
+        if (!this.refs.image) {
+            return;
         }
+
+        const img = this.refs.image;
+
+        if (!this.state.brandImageExists) {
+            $(img).attr('src', null);
+            return;
+        }
+
+        if (!this.state.brandImage) {
+            return;
+        }
+
+        const reader = new FileReader();
+
+        reader.onload = (e) => {
+            $(img).attr('src', e.target.result);
+        };
+
+        reader.readAsDataURL(this.state.brandImage);
+    }
+
+    handleClearImage(e) {
+        e.preventDefault();
+
+        if (this.state.status === UploadStatuses.LOADING) {
+            return;
+        }
+
+        this.setState({
+            brandImage: null,
+            brandImageExists: false,
+            status: UploadStatuses.DEFAULT,
+        });
     }
 
     handleImageSubmit(e) {
@@ -112,21 +139,37 @@ export default class BrandImageSetting extends React.PureComponent {
             letbtnDefaultClass += ' btn-default';
         }
 
+        const clearBrandImageBtn = (
+            <button type="button"
+                    className="close"
+                    onClick={this.handleClearImage}>
+                <span aria-hidden="true">×</span>
+                <span className="sr-only">Clear brand image</span>
+            </button>
+        );
+
         let img = null;
         if (this.state.brandImage) {
             img = (
-                <img
-                    ref='image'
-                    className='brand-img'
-                    src=''
-                />
+                <div>
+                    {clearBrandImageBtn}
+                    <img
+                        ref='image'
+                        className='brand-img'
+                        src=''
+                    />
+                </div>
             );
         } else if (this.state.brandImageExists) {
             img = (
-                <img
-                    className='brand-img'
-                    src={Client4.getBrandImageUrl(this.state.brandImageTimestamp)}
-                />
+                <div>
+                    {clearBrandImageBtn}
+                    <img
+                        ref='image'
+                        className='brand-img'
+                        src={Client4.getBrandImageUrl(this.state.brandImageTimestamp)}
+                    />
+                </div>
             );
         } else {
             img = (
