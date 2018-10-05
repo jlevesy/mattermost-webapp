@@ -7,7 +7,7 @@ import React from 'react';
 import {FormattedHTMLMessage, FormattedMessage} from 'react-intl';
 import {Client4} from 'mattermost-redux/client';
 
-import {uploadBrandImage} from 'actions/admin_actions.jsx';
+import {uploadBrandImage, deleteBrandImage} from 'actions/admin_actions.jsx';
 import {UploadStatuses} from 'utils/constants.jsx';
 import FormError from 'components/form_error.jsx';
 
@@ -83,13 +83,22 @@ export default class BrandImageSetting extends React.PureComponent {
             return;
         }
 
-        this.setState({
-            brandImage: null,
-            brandImageExists: false,
-            status: UploadStatuses.DEFAULT,
-        });
-
-        this.props.onChange(this.props.id, '');
+        //this.props.onChange(this.props.id, '');
+        deleteBrandImage(
+          () => {
+              this.setState({
+                  brandImage: null,
+                  brandImageExists: false,
+                  status: UploadStatuses.DEFAULT,
+              });
+          },
+          (err) => {
+              this.setState({
+                  error: err.message,
+                  status: UploadStatuses.DEFAULT,
+              });
+          }
+        );
     }
 
     handleImageSubmit(e) {
